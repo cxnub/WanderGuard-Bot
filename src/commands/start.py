@@ -34,8 +34,7 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
             welcome_message += f"\n\nTo get started, please link your WanderGuard account through the [WanderGuard Website]({web_url})."
 
         else:
-            welcome_message += escape_markdown(f"\n\nYou may use the /patient_status command to view the status of your patient(s).")
-            welcome_message += escape_markdown(f"\nIf you do not wish to receive alerts, you may unlink your account using the /unlink command.")
+            welcome_message += escape_markdown(f"\n\nYou may use the /help command to view all my commands.")
 
         return await update.message.reply_markdown(welcome_message)
         

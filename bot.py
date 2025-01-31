@@ -11,6 +11,7 @@ from telegram.ext import Application, CommandHandler, CallbackQueryHandler
 from src.commands.start import start, unlink, unlink_email
 from src.commands.help import help_command
 from src.commands.patient_status import patient_status_command, handle_button
+from src.commands.manage_alerts import manage_alerts, handle_toggle_alerts
 
 # Load environment variables
 load_dotenv()
@@ -33,12 +34,16 @@ def start_bot() -> None:
     application.add_handler(CommandHandler("help", help_command))
     application.add_handler(CommandHandler("patient_status", patient_status_command))
     application.add_handler(CommandHandler("unlink", unlink))
+    application.add_handler(CommandHandler("manage_alerts", manage_alerts))
     
     # Add CallbackQueryHandler for patient_status
     application.add_handler(CallbackQueryHandler(handle_button, pattern=is_uuid))
     
     # Add CallbackQueryHandler for unlink email
     application.add_handler(CallbackQueryHandler(unlink_email, pattern=r"^unlink_"))
+    
+    # Add CallbackQueryHandler for toggle alerts
+    application.add_handler(CallbackQueryHandler(handle_toggle_alerts, pattern=r"^toggle_alerts_"))
 
     # Run the bot
     application.run_polling(allowed_updates=Update.ALL_TYPES)

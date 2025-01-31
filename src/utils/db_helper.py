@@ -50,7 +50,6 @@ class CacheService(object):
     
 user_patients = CacheService()
 
-@ttl_cache(maxsize=128, ttl=5)
 def get_user_by_telegram_id(telegram_id: int) -> dict:
     
     response = user_table.query(
@@ -61,12 +60,10 @@ def get_user_by_telegram_id(telegram_id: int) -> dict:
     
     return response.get('Items')[0] if response.get('Items') else None
 
-@ttl_cache(maxsize=128, ttl=5)
 def get_user_by_uuid(uuid: str) -> dict:
     response = user_table.get_item(Key={'uuid': uuid})
     return response.get('Item')
 
-@ttl_cache(maxsize=128, ttl=5)
 def get_user_by_email(email: str) -> dict:
     response = user_table.query(
         IndexName='email-index',
@@ -75,17 +72,14 @@ def get_user_by_email(email: str) -> dict:
     )
     return response.get('Items')[0] if response.get('Items') else None
 
-@ttl_cache(maxsize=128, ttl=5)
 def get_patient(uuid: str) -> dict:
     response = patient_table.get_item(Key={'uuid': uuid})
     return response.get('Item')
 
-@ttl_cache(maxsize=128, ttl=5)
 def get_device(patient_uuid: str) -> dict:
     response = device_table.get_item(Key={'patient_uuid': patient_uuid})
     return response.get('Item')
 
-@ttl_cache(maxsize=128, ttl=5)
 def get_patient_status(patient_uuid: str) -> dict:
     response = patient_data_table.query(
         KeyConditionExpression=Key('patient_uuid').eq(patient_uuid),
@@ -94,13 +88,11 @@ def get_patient_status(patient_uuid: str) -> dict:
     )
     return response.get('Items')[0] if response.get('Items') else None
 
-@ttl_cache(maxsize=128, ttl=5)
 def get_all_patients_by_telegram_id(telegram_id: str) -> list:
     user = get_user_by_telegram_id(telegram_id)
     if user:
         return get_all_patients_by_uuid(user.get('uuid'))
 
-@ttl_cache(maxsize=128, ttl=5)
 def get_all_patients_by_uuid(uuid: str) -> list:
     patients = patient_table.query(
         IndexName='caregiver_uuid-index',
@@ -116,7 +108,6 @@ def get_all_patients_by_uuid(uuid: str) -> list:
         
     return patients.get('Items')
 
-@ttl_cache(maxsize=128, ttl=5)
 def unlink_telegram_id(telegram_id: str) -> None:
     user = get_user_by_telegram_id(telegram_id)
     
@@ -129,3 +120,16 @@ def unlink_telegram_id(telegram_id: str) -> None:
     )
     
     return user
+
+
+def toggle_alerts(patient_uuid: str) -> None:
+    patient = get_patient(patient_uuid)
+    alerts = not patient.get('alerts')
+    
+    patient_table.update_item(
+        Key={'uuid': patient_uuid},
+        UpdateExpression='SET alerts = :a',
+        ExpressionAttributeValues={':a': alerts}
+    )
+    
+    return alerts
