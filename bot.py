@@ -3,13 +3,14 @@ The WanderGuard AI telegram bot entry point.
 """
 import logging
 import os
+from uuid import UUID
 from dotenv import load_dotenv
 from telegram import Update
-from telegram.ext import Application, CommandHandler
+from telegram.ext import Application, CommandHandler, CallbackQueryHandler
 
-from src.commands.start import start
+from src.commands.start import start, unlink, unlink_email
 from src.commands.help import help_command
-from src.commands.patient_status import patient_status_command
+from src.commands.patient_status import patient_status_command, handle_button
 
 # Load environment variables
 load_dotenv()
@@ -31,9 +32,25 @@ def start_bot() -> None:
     application.add_handler(CommandHandler("start", start))
     application.add_handler(CommandHandler("help", help_command))
     application.add_handler(CommandHandler("patient_status", patient_status_command))
+    application.add_handler(CommandHandler("unlink", unlink))
+    
+    # Add CallbackQueryHandler for patient_status
+    application.add_handler(CallbackQueryHandler(handle_button, pattern=is_uuid))
+    
+    # Add CallbackQueryHandler for unlink email
+    application.add_handler(CallbackQueryHandler(unlink_email, pattern=r"^unlink_"))
 
     # Run the bot
     application.run_polling(allowed_updates=Update.ALL_TYPES)
+
+
+def is_uuid(uuid: str) -> bool:
+    """Check if a string is a valid UUID."""
+    try:
+        uuid_obj = UUID(uuid, version=4)
+    except ValueError:
+        return False
+    return str(uuid_obj) == uuid
 
 
 if __name__ == "__main__":
